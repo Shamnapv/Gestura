@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+.idea/
+*.pyc
+*.h5
+*.mp4
+*.avi
+dataset/
+data/
+*.tflite

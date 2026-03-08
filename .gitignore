@@ -8,3 +8,4 @@ __pycache__/
 dataset/
 data/
 *.tflite
+test_images/

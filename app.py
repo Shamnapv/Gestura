@@ -3,8 +3,8 @@ import pandas as pd
 from PIL import Image
 
 from modules.alphabet_predict import predict_alphabet
-from modules.word_predict import predict_word
 from modules.translator import translate_text
+from modules.word_predict import predict_word
 from modules.formatter import format_text
 from modules.alphabet_animation import show_letter
 from modules.word_animation import show_word_video
@@ -152,7 +152,11 @@ else:
     # ---------------- ALPHABET LEVEL ----------------
 
     if page == "Alphabet Level":
+        if "alpha_sentence" not in st.session_state:
+            st.session_state.alpha_sentence = ""
 
+        if "last_letter" not in st.session_state:
+            st.session_state.last_letter = ""
         if st.session_state.role == "Signer":
 
             mode = st.radio("Input", ["Upload Image", "Camera"])
@@ -238,7 +242,7 @@ else:
                 if "camera_on_alpha" not in st.session_state:
                     st.session_state.camera_on_alpha = False
 
-                col1, col2 = st.columns(2)
+                col1, col2, col3, col4= st.columns(4)
 
                 if col1.button("📷 Start Camera"):
                     st.session_state.camera_on_alpha = True
@@ -246,8 +250,15 @@ else:
                 if col2.button("⛔ Stop Camera"):
                     st.session_state.camera_on_alpha = False
 
+                if col3.button("Clear Word"):
+                    st.session_state.alpha_sentence = ""
+                    st.session_state.last_letter = ""
+                if col4.button("Add Space"):
+                    st.session_state.alpha_sentence += " "
+
                 frame_placeholder = st.empty()
                 letter_placeholder = st.empty()
+                word_placeholder = st.empty()
 
                 if st.session_state.camera_on_alpha:
 
@@ -271,6 +282,17 @@ else:
 
                         letter_placeholder.success(f"Detected Letter: {letter}")
 
+                        # ---------- BUILD WORD ----------
+                        if letter not in ["Waiting", "?"]:
+
+                            if letter != st.session_state.last_letter:
+                                st.session_state.alpha_sentence += letter
+                                st.session_state.last_letter = letter
+
+                        word_placeholder.info(
+                            f"Predicted Word: {st.session_state.alpha_sentence}"
+                        )
+
                     cap.release()
         else:
 
@@ -281,22 +303,46 @@ else:
                 for letter in text:
                     show_letter(letter)
 
-# ---------------- WORD LEVEL ----------------
+ # ---------------- WORD LEVEL ----------------
 
-    if page=="Word Level":
+if page == "Word Level":
 
-        if st.session_state.role=="Signer":
+    if st.session_state.role == "Signer":
 
-            if st.button("Start Camera Detection"):
+        # create session variable
+        if "detected_sentence" not in st.session_state:
+            st.session_state.detected_sentence = ""
 
-                word = predict_word()
+        if st.button("Start Camera Detection"):
+            st.warning("Press 'Q' on your keyboard to quit the camera.")
+            sentence = predict_word()
 
-                st.success(f"Detected Word: {word}")
+            # store result
+            st.session_state.detected_sentence = sentence
 
-        else:
+        # show result if available
+        if st.session_state.detected_sentence != "":
 
-            text = st.text_input("Enter word")
+            st.success(
+                f"Detected Sentence: {st.session_state.detected_sentence}"
+            )
 
-            if st.button("Show Word Sign"):
+            language = st.selectbox(
+                "Translate To",
+                ["English", "Malayalam", "Hindi"]
+            )
 
-                show_word_video(text)
+            translated_text = translate_text(
+                st.session_state.detected_sentence,
+                language
+            )
+
+            st.write("Translated Text:")
+            st.info(translated_text)
+
+    else:
+        text = st.text_input("Enter word")
+
+        if st.button("Show Word Sign"):
+            show_word_video(text)
+

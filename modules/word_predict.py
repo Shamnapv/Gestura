@@ -73,7 +73,6 @@ def predict_word():
     ) as holistic:
 
         while cap.isOpened():
-
             ret,frame = cap.read()
 
             if not ret:
@@ -145,6 +144,7 @@ def predict_word():
 
             if key==ord('q'):
                 break
+
 
         cap.release()
         cv2.destroyAllWindows()
